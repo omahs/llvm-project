@@ -32,8 +32,8 @@ declare <vscale x 16 x i32> @llvm.vector.insert.nxv16i32.nxv4i32(<vscale x 16 x 
 
 define void @vector_insert_extract_legal_idxzero_128b(<vscale x 4 x float> %v0, <4 x float> %v1, <vscale x 2 x double> %v2) #1 {
 ; CHECK-LABEL: 'vector_insert_extract_legal_idxzero_128b'
-; CHECK-NEXT:  Cost Model: Found an estimated cost of 12 for instruction: %insert_legal_fixed_into_scalable = call <vscale x 4 x float> @llvm.vector.insert.nxv4f32.v4f32(<vscale x 4 x float> %v0, <4 x float> %v1, i64 0)
-; CHECK-NEXT:  Cost Model: Found an estimated cost of 4 for instruction: %extract_legal_fixed_from_scalable = call <2 x double> @llvm.vector.extract.v2f64.nxv2f64(<vscale x 2 x double> %v2, i64 0)
+; CHECK-NEXT:  Cost Model: Found an estimated cost of 1 for instruction: %insert_legal_fixed_into_scalable = call <vscale x 4 x float> @llvm.vector.insert.nxv4f32.v4f32(<vscale x 4 x float> %v0, <4 x float> %v1, i64 0)
+; CHECK-NEXT:  Cost Model: Found an estimated cost of 1 for instruction: %extract_legal_fixed_from_scalable = call <2 x double> @llvm.vector.extract.v2f64.nxv2f64(<vscale x 2 x double> %v2, i64 0)
 ; CHECK-NEXT:  Cost Model: Found an estimated cost of 0 for instruction: ret void
 ;
 ; TYPE_BASED_ONLY-LABEL: 'vector_insert_extract_legal_idxzero_128b'
@@ -50,8 +50,8 @@ declare <2 x double> @llvm.vector.extract.v2f64.nxv2f64(<vscale x 2 x double>, i
 
 define void @vector_insert_extract_legal_idxzero_256b(<vscale x 8 x i16> %v0, <16 x i16> %v1, <vscale x 4 x float> %v2) #2 {
 ; CHECK-LABEL: 'vector_insert_extract_legal_idxzero_256b'
-; CHECK-NEXT:  Cost Model: Found an estimated cost of 60 for instruction: %insert_legal_fixed_into_scalable = call <vscale x 8 x i16> @llvm.vector.insert.nxv8i16.v16i16(<vscale x 8 x i16> %v0, <16 x i16> %v1, i64 0)
-; CHECK-NEXT:  Cost Model: Found an estimated cost of 28 for instruction: %extract_legal_fixed_from_scalable = call <8 x float> @llvm.vector.extract.v8f32.nxv4f32(<vscale x 4 x float> %v2, i64 0)
+; CHECK-NEXT:  Cost Model: Found an estimated cost of 1 for instruction: %insert_legal_fixed_into_scalable = call <vscale x 8 x i16> @llvm.vector.insert.nxv8i16.v16i16(<vscale x 8 x i16> %v0, <16 x i16> %v1, i64 0)
+; CHECK-NEXT:  Cost Model: Found an estimated cost of 1 for instruction: %extract_legal_fixed_from_scalable = call <8 x float> @llvm.vector.extract.v8f32.nxv4f32(<vscale x 4 x float> %v2, i64 0)
 ; CHECK-NEXT:  Cost Model: Found an estimated cost of 0 for instruction: ret void
 ;
 ; TYPE_BASED_ONLY-LABEL: 'vector_insert_extract_legal_idxzero_256b'
