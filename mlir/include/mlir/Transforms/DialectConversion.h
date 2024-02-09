@@ -738,11 +738,6 @@ private:
   // Hide unsupported pattern rewriter API.
   using OpBuilder::setListener;
 
-  void moveOpBefore(Operation *op, Block *block,
-                    Block::iterator iterator) override;
-  void moveOpAfter(Operation *op, Block *block,
-                   Block::iterator iterator) override;
-
   std::unique_ptr<detail::ConversionPatternRewriterImpl> impl;
 };
 

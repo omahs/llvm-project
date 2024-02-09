@@ -757,7 +757,8 @@ public:
     InlineBlock,
     MoveBlock,
     SplitBlock,
-    BlockTypeConversion
+    BlockTypeConversion,
+    MoveOperation
   };
 
   virtual ~RewriteAction() = default;
@@ -969,6 +970,54 @@ public:
   }
 
   void rollback() override;
+};
+
+/// An operation rewrite.
+class OperationAction : public RewriteAction {
+public:
+  /// Return the operation that this action operates on.
+  Operation *getOperation() const { return op; }
+
+  static bool classof(const RewriteAction *action) {
+    return action->getKind() >= Kind::MoveOperation &&
+           action->getKind() <= Kind::MoveOperation;
+  }
+
+protected:
+  OperationAction(Kind kind, ConversionPatternRewriterImpl &rewriterImpl,
+                  Operation *op)
+      : RewriteAction(kind, rewriterImpl), op(op) {}
+
+  // The operation that this action operates on.
+  Operation *op;
+};
+
+/// Rewrite action that represent the moving of a block.
+class MoveOperationAction : public OperationAction {
+public:
+  MoveOperationAction(ConversionPatternRewriterImpl &rewriterImpl,
+                      Operation *op, Block *block, Operation *insertBeforeOp)
+      : OperationAction(Kind::MoveOperation, rewriterImpl, op), block(block),
+        insertBeforeOp(insertBeforeOp) {}
+
+  static bool classof(const RewriteAction *action) {
+    return action->getKind() == Kind::MoveOperation;
+  }
+
+  void rollback() override {
+    // Move the operation back to its original position.
+    Block::iterator before =
+        insertBeforeOp ? Block::iterator(insertBeforeOp) : block->end();
+    block->getOperations().splice(before, op->getBlock()->getOperations(), op);
+  }
+
+private:
+  // The block in which this operation was previously contained.
+  Block *block;
+
+  // The original successor of this operation before it was moved. "nullptr" if
+  // this operation was the only operation in the region.
+  Operation *insertBeforeOp;
 };
 } // namespace
 
@@ -1468,12 +1517,19 @@ LogicalResult ConversionPatternRewriterImpl::convertNonEntryRegionTypes(
 
 void ConversionPatternRewriterImpl::notifyOperationInserted(
     Operation *op, OpBuilder::InsertPoint previous) {
-  assert(!previous.isSet() && "expected newly created op");
   LLVM_DEBUG({
     logger.startLine() << "** Insert  : '" << op->getName() << "'(" << op
                        << ")\n";
   });
-  createdOps.push_back(op);
+  if (!previous.isSet()) {
+    // This is a newly created op.
+    createdOps.push_back(op);
+    return;
+  }
+  Operation *prevOp = previous.getPoint() == previous.getBlock()->end()
+                          ? nullptr
+                          : &*previous.getPoint();
+  appendRewriteAction<MoveOperationAction>(op, previous.getBlock(), prevOp);
 }
 
 void ConversionPatternRewriterImpl::notifyOpReplaced(Operation *op,
@@ -1710,18 +1766,6 @@ void ConversionPatternRewriter::cancelOpModification(Operation *op) {
   (*it).resetOperation();
   int updateIdx = std::prev(rootUpdates.rend()) - it;
   rootUpdates.erase(rootUpdates.begin() + updateIdx);
-}
-
-void ConversionPatternRewriter::moveOpBefore(Operation *op, Block *block,
-                                             Block::iterator iterator) {
-  llvm_unreachable(
-      "moving single ops is not supported in a dialect conversion");
-}
-
-void ConversionPatternRewriter::moveOpAfter(Operation *op, Block *block,
-                                            Block::iterator iterator) {
-  llvm_unreachable(
-      "moving single ops is not supported in a dialect conversion");
 }
 
 detail::ConversionPatternRewriterImpl &ConversionPatternRewriter::getImpl() {
