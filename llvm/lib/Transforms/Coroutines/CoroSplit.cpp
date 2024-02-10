@@ -264,7 +264,7 @@ static void replaceFallthroughCoroEnd(AnyCoroEndInst *End,
 
     if (auto *RetStructTy = dyn_cast<StructType>(RetTy)) {
       assert(RetStructTy->getNumElements() == NumReturns &&
-           "numbers of returns should match resume function singature");
+           "numbers of returns should match resume function signature");
       Value *ReturnValue = UndefValue::get(RetStructTy);
       unsigned Idx = 0;
       for (Value *RetValEl : CoroResults->return_values())
